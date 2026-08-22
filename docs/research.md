@@ -764,11 +764,15 @@ docs/        format-bytecode.md  format-assets.md  dsl-reference.md
 A vertical slice, ~1–3 hours, that exercises **every** FSN-class mechanic. Content is small; the
 machinery is complete.
 
+**All demo narrative is original.** The games studied above are structural and technical reference
+only — we take architecture and craft standard from them, never characters, names, prose or story.
+See `demo/README.md` for the boundary.
+
 | Mechanic | Demo realisation |
 |---|---|
 | Route locking | 3 routes; B locked until A cleared, C until B — gated on `sf.` flags |
 | Threshold-on-accumulator | Two hidden affection counters, saturating, compared at fixed checkpoints |
-| Bad ends + recovery | 6 numbered bad ends, each with a Tiger-Dojo-style interstitial that names the choice to change and unlocks a gallery entry |
+| Bad ends + recovery | 6 numbered bad ends, each with an interstitial that names the choice to change and unlocks a gallery entry (the mechanic FSN implements as Tiger Dojo) |
 | Flowchart | Full node graph, jump-to-any-cleared-node, unseen successors as stubs |
 | Non-menu choice | One Steins;Gate-style concurrent thread (a second script thread with a timed window) |
 | Kinetic chapter | One Higurashi-style standalone chapter with zero choices — proves file-ordering covers it |

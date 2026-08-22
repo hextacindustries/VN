@@ -1,0 +1,4 @@
+build/
+*.o
+*.ppm
+*.png
