@@ -67,8 +67,7 @@ static void ridge(vn_surface *s, int base_y, int amp, int period,
     }
 }
 
-void demo_render(vn_surface *s, const vn_font *font,
-                 const char *speaker, const char *line, int reveal)
+void demo_render(vn_surface *s, const vn_font *font, const demo_view *v)
 {
     /* --- sky: dusk ramp, dark at the zenith to warm at the horizon --- */
     static const uint8_t sky[] = { 1, 2, 3, 11, 14, 15 };
@@ -91,14 +90,32 @@ void demo_render(vn_surface *s, const vn_font *font,
     vn_frame_rect(s, 96, 176, 152, 128, 2);
     for (int wy = 0; wy < 4; wy++)
         for (int wx = 0; wx < 4; wx++) {
-            /* Deterministic "which windows are lit" pattern. */
             int lit = ((wx * 5 + wy * 3) % 7) < 4;
-            vn_fill_rect(s, 112 + wx * 32, 192 + wy * 28, 16, 16,
-                         lit ? 15 : 1);
+            vn_fill_rect(s, 112 + wx * 32, 192 + wy * 28, 16, 16, lit ? 15 : 1);
         }
 
     /* --- ground: 50% checkerboard, the signature PC-98 texture --- */
     vn_fill_checker(s, 0, 304, s->w, s->h - 304, 1, 2);
+
+    /* --- choices, when the VM is waiting on one ---------------------
+     * Options are a vertical list, never positioned by pixel. That is
+     * what lets a 400x400 round watch face reflow the same scene. */
+    if (v->nchoices > 0) {
+        int bw = 448, bx = (s->w - bw) / 2;
+        int rowh = 28, by = 300 - (v->nchoices * rowh) / 2;
+        for (int i = 0; i < v->nchoices; i++) {
+            int y = by + i * rowh;
+            int sel = (i == v->selected);
+            vn_fill_rect(s, bx, y, bw, rowh - 4, sel ? 4 : 1);
+            vn_frame_rect(s, bx, y, bw, rowh - 4, v->enabled[i] ? 6 : 3);
+            /* A disabled option is shown, not hidden: seeing a locked
+             * door is what tells the player another route exists. */
+            uint8_t ink = v->enabled[i] ? (sel ? 7 : 6) : 3;
+            vn_draw_text(s, font, v->choices[i] ? v->choices[i] : "",
+                         bx + 12, y + 6, bw - 24, ink, -1);
+        }
+        return;
+    }
 
     /* --- message window ---------------------------------------------
      * Aligned to 8px horizontally because one VRAM byte was 8 pixels in
@@ -109,14 +126,13 @@ void demo_render(vn_surface *s, const vn_font *font,
     vn_frame_rect(s, bx, by, bw, bh, 6);
     vn_frame_rect(s, bx + 2, by + 2, bw - 4, bh - 4, 4);
 
-    /* --- speaker plate ---------------------------------------------- */
-    if (speaker && *speaker) {
-        int nw = (int)vn_text_length(speaker) * font->cell_w + 16;
+    if (v->speaker && *v->speaker) {
+        int nw = vn_text_length(v->speaker) * font->cell_w + 16;
         vn_fill_rect(s, bx + 16, by - 20, nw, 20, 1);
         vn_frame_rect(s, bx + 16, by - 20, nw, 20, 6);
-        vn_draw_text(s, font, speaker, bx + 24, by - 18, nw, 13, -1);
+        vn_draw_text(s, font, v->speaker, bx + 24, by - 18, nw, 13, -1);
     }
 
-    /* --- dialogue, typewriter-revealed ------------------------------- */
-    vn_draw_text(s, font, line, bx + 16, by + 14, bw - 32, 7, reveal);
+    vn_draw_text(s, font, v->line ? v->line : "",
+                 bx + 16, by + 14, bw - 32, 7, v->reveal);
 }

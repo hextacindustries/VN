@@ -1,0 +1,91 @@
+# Demo script. All content original - see demo/README.md.
+#
+# This slice deliberately exercises every structural mechanic the engine
+# claims to support, in miniature: route gating on profile-global flags,
+# a threshold-on-accumulator counter, guarded choices, a subroutine, a
+# concurrent background thread, and a numbered ending.
+
+scene start "Before Dawn"
+    bg    gate_dusk fade 800
+    bgm   quiet_rain
+    show  sumire neutral at center
+
+    narr  The rain had stopped sometime before dawn.
+    narr  The gate stood open, the way it always did.
+
+    set f.trust = 0
+    spawn clock_thread
+
+    sumire "You're early, for once."
+
+    choice
+        "I couldn't sleep."      -> honest
+        "The trains were empty." -> deflect
+        "You waited for me."     -> presume  if sf.chapter_one_cleared
+    end
+end
+
+scene honest "Honest"
+    add f.trust 2
+    sumire "That makes two of us."
+    jump crossroads
+end
+
+scene deflect "Deflect"
+    add f.trust 1
+    sumire "They usually are, at this hour."
+    jump crossroads
+end
+
+scene presume "Presume"
+    add f.trust 3
+    sumire "Don't flatter yourself."
+    narr  But she did not walk away.
+    jump crossroads
+end
+
+scene crossroads "The Crossroads"
+    call describe_sky
+
+    # Threshold on an accumulator, compared at a fixed checkpoint - the
+    # structure FSN uses for route selection, in miniature.
+    if f.trust >= 3
+        jump ending_warm
+    elif f.trust >= 1
+        jump ending_quiet
+    else
+        jump ending_cold
+    end
+end
+
+scene describe_sky "-"
+    narr  Above the roofline the clouds were breaking apart.
+    return
+end
+
+scene ending_warm "Something Kept"
+    set sf.chapter_one_cleared = 1
+    sumire "Walk with me, then."
+    ending kept kind=TRUE
+end
+
+scene ending_quiet "Something Passed"
+    set sf.chapter_one_cleared = 1
+    narr  She went ahead, and you followed a few steps behind.
+    ending passed kind=GOOD
+end
+
+scene ending_cold "Nothing Left"
+    narr  You never did look up.
+    ending nothing kind=BAD
+end
+
+# A second cooperative thread, running alongside the narrative. This is
+# the mechanism that makes non-menu choices (a phone, an inbox, a timer)
+# possible at all - see docs/research.md part 2.5.
+scene clock_thread "-"
+    wait 1000
+    add tf.minutes 1
+    yield
+    jump clock_thread
+end

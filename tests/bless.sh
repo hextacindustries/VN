@@ -3,6 +3,7 @@
 # after eyeballing the frames and agreeing the new output is correct.
 set -e
 cd "$(dirname "$0")/.."
+rm -rf build/frames
 make -s frames >/dev/null
 mkdir -p tests/golden
 ( cd build/frames && sha256sum *.ppm > ../../tests/golden/manifest.sha256 )

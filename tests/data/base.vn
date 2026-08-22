@@ -1,0 +1,18 @@
+# Baseline for save-compatibility tests. Saves are taken inside `middle`.
+scene start "Start"
+    set f.a = 1
+    narr Line one.
+    jump middle
+end
+
+scene middle "Middle"
+    add f.a 5
+    narr Line two.
+    narr Line three.
+    jump tail
+end
+
+scene tail "Tail"
+    narr Line four.
+    ending done kind=GOOD
+end
